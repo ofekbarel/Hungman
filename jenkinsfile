@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         SONARQUBE_SERVER = 'http://sonarqube:9000'
-        SONARQUBE_TOKEN = credentials('sonar-token') 
+        SONARQUBE_TOKEN = credentials('sonar-tokenn') 
         SONARQUBE_PROJECT_KEY = 'TEST'
         SONARQUBE_PROJECT_NAME = 'TEST'
     }
