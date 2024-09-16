@@ -1,0 +1,4 @@
+flask==3.0.2
+psycopg2===2.9.9
+python-dotenv==1.0.1
+python-logstash-async==3.0.0

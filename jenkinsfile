@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+
+    environment {
+        // הגדרת משתני סביבה הנדרשים לסריקה עם SonarQube
+        SONARQUBE_SERVER = 'http://sonarqube:9000'
+        SONARQUBE_TOKEN = credentials('sonar-token') // טוקן הגישה שלך ל-SonarQube
+        SONARQUBE_PROJECT_KEY = 'TEST'
+        SONARQUBE_PROJECT_NAME = 'TEST'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('SonarQube Scan') {
+            steps {
+                script {
+                    // שלב הרצת סריקת SonarQube
+                    withSonarQubeEnv('SonarQube') {
+                        sh '''
+                        sonar-scanner \
+                        -Dsonar.projectKey=${SONARQUBE_PROJECT_KEY} \
+                        -Dsonar.projectName=${SONARQUBE_PROJECT_NAME} \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=${SONARQUBE_SERVER} \
+                        -Dsonar.login=${SONARQUBE_TOKEN}
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                // שלב המתנה לתוצאות הסריקה ובדיקת Gate
+                waitForQualityGate abortPipeline: true
+            }
+        }
+    }
+
+    post {
+        always {
+            // ניקוי והודעות
+            cleanWs()
+        }
+    }
+}

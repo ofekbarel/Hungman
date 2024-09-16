@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hangman Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-image: url('/static/zoo.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        #game-container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #hangman-art {
+            font-family: monospace;
+            white-space: pre;
+        }
+        #guess-input {
+            margin-top: 10px;
+        }
+        #message {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        button {
+            cursor: pointer;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input {
+            padding: 5px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Hangman Game</h1>
+        <div id="player-form">
+            <input type="text" id="player-name" placeholder="Enter your name">
+            <button onclick="startGame()">Start Game</button>
+        </div>
+        <div id="game-area" style="display: none;">
+            <div id="hangman-art"></div>
+            <div id="guess-word"></div>
+            <div id="guess-input">
+                <input type="text" id="guess" maxlength="1" placeholder="Enter a letter">
+                <button onclick="makeGuess()">Guess</button>
+            </div>
+            <div id="message"></div>
+        </div>
+    </div>
+
+    <script>
+        function startGame() {
+            const playerName = document.getElementById('player-name').value;
+            if (!playerName) {
+                alert('Please enter your name');
+                return;
+            }
+            
+            fetch('/start_game', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `player_name=${encodeURIComponent(playerName)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('player-form').style.display = 'none';
+                document.getElementById('game-area').style.display = 'block';
+                updateGameState(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while starting the game. Please try again.');
+            });
+        }
+
+        function makeGuess() {
+            const guess = document.getElementById('guess').value.toLowerCase();
+            if (!guess || guess.length !== 1 || !guess.match(/[a-z]/i)) {
+                alert('Please enter a single letter');
+                return;
+            }
+            
+            fetch('/guess', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `guess=${encodeURIComponent(guess)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateGameState(data);
+                if (data.game_over) {
+                    document.getElementById('guess-input').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while making a guess. Please try again.');
+            });
+
+            document.getElementById('guess').value = '';
+        }
+
+        function updateGameState(data) {
+            document.getElementById('hangman-art').textContent = data.hangman;
+            document.getElementById('guess-word').textContent = data.guess_word;
+            document.getElementById('message').textContent = data.message;
+        }
+
+        // Add event listener for Enter key
+        document.getElementById('player-name').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                startGame();
+            }
+        });
+
+        document.getElementById('guess').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                makeGuess();
+            }
+        });
+    </script>
+</body>
+</html>
