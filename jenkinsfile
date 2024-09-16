@@ -2,9 +2,8 @@ pipeline {
     agent any
 
     environment {
-        // הגדרת משתני סביבה הנדרשים לסריקה עם SonarQube
         SONARQUBE_SERVER = 'http://sonarqube:9000'
-        SONARQUBE_TOKEN = credentials('sonar-token') // טוקן הגישה שלך ל-SonarQube
+        SONARQUBE_TOKEN = credentials('sonar-token') 
         SONARQUBE_PROJECT_KEY = 'TEST'
         SONARQUBE_PROJECT_NAME = 'TEST'
     }
@@ -19,7 +18,6 @@ pipeline {
         stage('SonarQube Scan') {
             steps {
                 script {
-                    // שלב הרצת סריקת SonarQube
                     withSonarQubeEnv('SonarQube') {
                         sh '''
                         sonar-scanner \
@@ -36,7 +34,6 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                // שלב המתנה לתוצאות הסריקה ובדיקת Gate
                 waitForQualityGate abortPipeline: true
             }
         }
@@ -44,7 +41,6 @@ pipeline {
 
     post {
         always {
-            // ניקוי והודעות
             cleanWs()
         }
     }
